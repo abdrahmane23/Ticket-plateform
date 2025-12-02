@@ -34,6 +34,7 @@ public class UserProvisioningFilter extends OncePerRequestFilter {
                 && authentication.getPrincipal() instanceof Jwt jwt){
             UUID keyclockId = UUID.fromString(jwt.getSubject());
             if (!userRepo.existsById(keyclockId)){
+                System.out.println("ddefefe");
                 User newUser = new  User();
                 newUser.setId(keyclockId);
                 newUser.setEmail(jwt.getClaimAsString("email"));

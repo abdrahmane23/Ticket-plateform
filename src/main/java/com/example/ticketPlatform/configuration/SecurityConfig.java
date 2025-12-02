@@ -24,9 +24,6 @@ public class SecurityConfig {
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults())
                 ).addFilterAfter(userProvisioningFilter, BearerTokenAuthenticationFilter.class);
-
-        http.addFilterAfter(userProvisioningFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
