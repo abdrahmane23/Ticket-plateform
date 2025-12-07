@@ -2,10 +2,7 @@ package com.example.ticketPlatform.controller;
 
 
 import com.example.ticketPlatform.domain.Dtos.ErrorDto;
-import com.example.ticketPlatform.exceptions.EventNotFoundException;
-import com.example.ticketPlatform.exceptions.EventUpdateException;
-import com.example.ticketPlatform.exceptions.TicketTypeNotFoundException;
-import com.example.ticketPlatform.exceptions.UserNotFoundException;
+import com.example.ticketPlatform.exceptions.*;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,6 +18,30 @@ import java.util.List;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+  @ExceptionHandler(TicketAlreadyValidatedException.class)
+  public ResponseEntity<ErrorDto> handleTicketAlreadyValidatedException(TicketAlreadyValidatedException ex) {
+    log.error("Caught TicketTypeMismatch Exception", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("Unable to Validate ticket because it has already been validated ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(TicketTypeMismatchException.class)
+  public ResponseEntity<ErrorDto> handleTicketTypeMismatchException(TicketTypeMismatchException ex) {
+    log.error("Caught TicketTypeMismatch Exception", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("Unable to Validate ticket because the ticketType doesn't match this Type ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(TicketEventMismatchException.class)
+  public ResponseEntity<ErrorDto> handleTicketEventMismatchException(TicketEventMismatchException ex) {
+    log.error("Caught TicketEventMismatch Exception", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("Unable to Validate ticket because the ticket doesn't match the event ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
 
   @ExceptionHandler(EventUpdateException.class)
   public ResponseEntity<ErrorDto> handleEventUpdateException(EventUpdateException ex) {

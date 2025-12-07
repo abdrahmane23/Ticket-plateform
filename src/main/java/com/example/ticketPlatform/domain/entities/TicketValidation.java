@@ -1,16 +1,7 @@
 package com.example.ticketPlatform.domain.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -21,8 +12,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "ticket_validations")
 @Getter
 @Setter
@@ -40,8 +33,8 @@ public class TicketValidation {
   @Enumerated(EnumType.STRING)
   private TicketValidationMethod validationMethod;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "ticket_id")
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "ticket_id",unique = true)
   private Ticket ticket;
 
   @CreatedDate
