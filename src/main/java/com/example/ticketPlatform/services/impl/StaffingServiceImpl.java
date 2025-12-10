@@ -52,7 +52,7 @@ public class StaffingServiceImpl implements StaffingService {
                     return newUser;
                 });
 
-        NewStaffer.getStaffingEvents().add(AssignedticketType);
+        NewStaffer.getStaffingEntries().add(AssignedticketType);
         userRepo.save(NewStaffer);
 
     }
@@ -64,7 +64,7 @@ public class StaffingServiceImpl implements StaffingService {
                 .orElseThrow(
                         ()-> new UserNotFoundException("staffer with ID " + userId + " not found"));
 
-        Staffer.getStaffingEvents().remove(AssignedTicketType);
+        Staffer.getStaffingEntries().remove(AssignedTicketType);
         userRepo.save(Staffer);
     }
 

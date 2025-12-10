@@ -44,11 +44,11 @@ public class User {
 
   @ManyToMany
   @JoinTable(
-      name = "user_staffing_events",
+      name = "staffing_entries",
       joinColumns = @JoinColumn(name = "user_id"),
       inverseJoinColumns = @JoinColumn(name = "ticket_type_id")
   )
-  private List<TicketType> staffingEvents = new ArrayList<>();
+  private List<TicketType> staffingEntries = new ArrayList<>();
 
   @CreatedDate
   @Column(name = "created_at", updatable = false, nullable = false)
