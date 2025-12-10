@@ -30,6 +30,12 @@ public class UpdateEventRequestDto {
 
   @NotBlank(message = "Venue information is required")
   private String venue;
+  @NotBlank(message = "Venue information is required")
+
+  private String country;
+
+  @NotBlank(message = "Venue information is required")
+  private String city;
 
   private LocalDateTime salesStart;
 

@@ -1,7 +1,8 @@
 package com.example.ticketPlatform.services.impl;
-import com.example.ticketPlatform.Repositories.EventRepo;
+import com.example.ticketPlatform.Repositories.TicketTypeRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
 import com.example.ticketPlatform.domain.entities.Event;
+import com.example.ticketPlatform.domain.entities.TicketType;
 import com.example.ticketPlatform.domain.entities.User;
 import com.example.ticketPlatform.exceptions.EventNotFoundException;
 import com.example.ticketPlatform.exceptions.EventTicketException;
@@ -9,10 +10,7 @@ import com.example.ticketPlatform.exceptions.StafferNotRegisteredException;
 import com.example.ticketPlatform.exceptions.UserNotFoundException;
 import com.example.ticketPlatform.services.StaffingService;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.ProcessingException;
 import lombok.RequiredArgsConstructor;
-import org.eclipse.microprofile.openapi.models.info.Contact;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
@@ -26,24 +24,25 @@ import java.util.UUID;
 public class StaffingServiceImpl implements StaffingService {
     private final Keycloak keycloakAdminClient;
     private final UserRepo userRepo;
-    private final EventRepo eventRepo;
+    private final TicketTypeRepo ticketTypeRepo;
     private final String realm = "event-ticket-plateform";
     private UserRepresentation user;
 
     @Transactional
     @Override
-    public void AssignStaffToEvent(UUID eventId, UUID organizerId, UUID userId) {
-        try {
-            user = keycloakAdminClient.realm(realm)
+    public void AssignStaffToEvent(UUID ticketTypeId, UUID organizerId, String StafferUsername) {
+        TicketType AssignedticketType = getTicketTypeIfValid(ticketTypeId, organizerId);
+
+        user = keycloakAdminClient.realm(realm)
                     .users()
-                    .get(userId.toString())
-                    .toRepresentation();
-        } catch (NotFoundException e) {
-            throw new StafferNotRegisteredException("Staffer with ID " + userId + " does not exist");
-        }
+                    .searchByUsername(StafferUsername,true)
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(
+                            ()-> new StafferNotRegisteredException("THIS staffer is not registred")
+                    );
 
-        Event AssignedEvent = getEventIfValid(eventId, organizerId);
-
+        UUID userId = UUID.fromString(user.getId());
         User NewStaffer = userRepo.findById(userId)
                 .orElseGet(() -> {
                     User newUser = new User();
@@ -53,31 +52,31 @@ public class StaffingServiceImpl implements StaffingService {
                     return newUser;
                 });
 
-        NewStaffer.getStaffingEvents().add(AssignedEvent);
+        NewStaffer.getStaffingEvents().add(AssignedticketType);
         userRepo.save(NewStaffer);
 
     }
+
     @Transactional
-    public void RemoveStaffFromEvent(UUID eventId, UUID organizerId, UUID userId) {
-        Event AssignedEvent = getEventIfValid(eventId, organizerId);
+    public void RemoveStaffFromEvent(UUID ticketTypeId, UUID organizerId, UUID userId) {
+        TicketType AssignedTicketType = getTicketTypeIfValid(ticketTypeId, organizerId);
         User Staffer = userRepo.findById(userId)
                 .orElseThrow(
                         ()-> new UserNotFoundException("staffer with ID " + userId + " not found"));
 
-        Staffer.getStaffingEvents().remove(AssignedEvent);
+        Staffer.getStaffingEvents().remove(AssignedTicketType);
         userRepo.save(Staffer);
-
     }
 
-    private Event getEventIfValid(UUID eventId, UUID organizerId) {
-        Event AssignedEvent = eventRepo.findById(eventId).orElseThrow(
-                ()-> new EventNotFoundException("Event with ID " + eventId + " not found"));
+    private TicketType getTicketTypeIfValid(UUID ticketTypeId, UUID organizerId) {
+        TicketType AssignedTicketType = ticketTypeRepo.findById(ticketTypeId).orElseThrow(
+                ()-> new EventNotFoundException("Event with ID " + ticketTypeId + " not found"));
         User organizer=  userRepo.findById(organizerId).orElseThrow(
                 ()-> new UserNotFoundException(STR."this organizer with Id\{organizerId}doesnt exist ")
         );
-        if (!AssignedEvent.getOrganizer().getId().equals(organizer.getId())) {
-            throw new EventTicketException(STR."Organizer with ID \{organizerId} is not the organizer of event with ID \{eventId}");
+        if (!AssignedTicketType.getEvent().getOrganizer().getId().equals(organizer.getId())) {
+            throw new EventTicketException(STR."Organizer with ID \{organizerId} is not the organizer of event with ID \{AssignedTicketType.getEvent().getOrganizer().getId()}");
         }
-        return AssignedEvent;
+        return AssignedTicketType;
     }
 }

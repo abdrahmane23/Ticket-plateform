@@ -23,20 +23,18 @@ public class StaffingController {
 
 
     @PostMapping
-    public ResponseEntity<Void> AssignStaffer(@PathVariable UUID eventId
-                                              ,@PathVariable UUID ticketTypeId,
-                                              @RequestParam UUID stafferId,
+    public ResponseEntity<Void> AssignStaffer(@PathVariable UUID ticketTypeId,
+                                              @RequestParam String stafferUsername,
                                               @AuthenticationPrincipal Jwt jwt) {
-        staffingService.AssignStaffToEvent(eventId, parseUserId(jwt) ,stafferId );
+        staffingService.AssignStaffToEvent(ticketTypeId, parseUserId(jwt) , stafferUsername );
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> RemoveStaffer(@PathVariable UUID eventId,
-                                              @PathVariable UUID ticketTypeId,
-                                              @RequestParam UUID stafferId,
+    public ResponseEntity<Void> RemoveStaffer(@PathVariable UUID ticketTypeId,
+                                              @RequestParam UUID userId,
                                               @AuthenticationPrincipal Jwt jwt) {
-        staffingService.RemoveStaffFromEvent(eventId, parseUserId(jwt) ,stafferId );
+        staffingService.RemoveStaffFromEvent(ticketTypeId, parseUserId(jwt) ,userId );
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

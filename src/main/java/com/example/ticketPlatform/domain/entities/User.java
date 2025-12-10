@@ -46,9 +46,9 @@ public class User {
   @JoinTable(
       name = "user_staffing_events",
       joinColumns = @JoinColumn(name = "user_id"),
-      inverseJoinColumns = @JoinColumn(name = "event_id")
+      inverseJoinColumns = @JoinColumn(name = "ticket_type_id")
   )
-  private List<Event> staffingEvents = new ArrayList<>();
+  private List<TicketType> staffingEvents = new ArrayList<>();
 
   @CreatedDate
   @Column(name = "created_at", updatable = false, nullable = false)

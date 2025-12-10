@@ -20,6 +20,8 @@ public class ListEventResponseDto {
   private LocalDateTime start;
   private LocalDateTime end;
   private String venue;
+  private String country;
+  private String city;
   private LocalDateTime salesStart;
   private LocalDateTime salesEnd;
   private EventStatusEnum status;

@@ -27,6 +27,13 @@ public class CreateEventRequestDto {
   @NotBlank(message = "Venue information is required")
   private String venue;
 
+  @NotBlank(message = "country information is required")
+  private String country;
+
+  @NotBlank(message = "city information is required")
+  private String city;
+
+
   private LocalDateTime salesStart;
 
   private LocalDateTime salesEnd;
@@ -37,4 +44,5 @@ public class CreateEventRequestDto {
   @NotEmpty(message = "At least one ticket type is required")
   @Valid
   private List<CreateTicketTypeRequestDto> ticketTypes;
+
 }
