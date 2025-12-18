@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import static com.example.ticketPlatform.util.JwtUtil.parseUserId;
@@ -21,20 +22,18 @@ import static com.example.ticketPlatform.util.JwtUtil.parseUserId;
 public class StaffingController {
     private final StaffingService staffingService ;
 
-
     @PostMapping
     public ResponseEntity<Void> AssignStaffer(@PathVariable UUID ticketTypeId,
-                                              @RequestParam String stafferUsername,
+                                              @RequestParam UUID stafferId,
                                               @AuthenticationPrincipal Jwt jwt) {
-        staffingService.AssignStaffToEvent(ticketTypeId, parseUserId(jwt) , stafferUsername );
+        staffingService.assignStaffToEvent(ticketTypeId, parseUserId(jwt) , stafferId );
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @DeleteMapping
-    public ResponseEntity<Void> RemoveStaffer(@PathVariable UUID ticketTypeId,
-                                              @RequestParam UUID userId,
+    @PutMapping(path = "{taskId}")
+    public ResponseEntity<Void> RemoveStaffer(@PathVariable UUID taskId,
                                               @AuthenticationPrincipal Jwt jwt) {
-        staffingService.RemoveStaffFromEvent(ticketTypeId, parseUserId(jwt) ,userId );
+        staffingService.removeTaskFromEvent( parseUserId(jwt),taskId );
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

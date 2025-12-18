@@ -42,14 +42,19 @@ public class User {
   @OneToMany(mappedBy = "organizer", cascade = CascadeType.ALL)
   private List<Event> organizedEvents = new ArrayList<>();
 
-  @ManyToMany
-  @JoinTable(
-      name = "staffing_entries",
-      joinColumns = @JoinColumn(name = "user_id"),
-      inverseJoinColumns = @JoinColumn(name = "ticket_type_id")
-  )
-  private List<TicketType> staffingEntries = new ArrayList<>();
+  @OneToMany(mappedBy = "sender")
+  private List<Request> sentRequests= new ArrayList<>();
 
+  @OneToMany(mappedBy = "receiver")
+  private List<Request> receivedRequests= new ArrayList<>();
+
+  @OneToOne(mappedBy = "staffer", cascade = CascadeType.ALL)
+  private StaffLink staffLink;
+  @OneToMany(mappedBy = "staffer", cascade = CascadeType.ALL)
+  private List<Task> tasks= new ArrayList<>();
+
+  @OneToMany(mappedBy = "organizer", cascade = CascadeType.ALL)
+  private List<StaffLink> StaffMembers = new ArrayList<>();
   @CreatedDate
   @Column(name = "created_at", updatable = false, nullable = false)
   private LocalDateTime createdAt;

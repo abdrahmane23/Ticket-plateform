@@ -19,6 +19,29 @@ import java.util.List;
 @Slf4j
 public class GlobalExceptionHandler {
 
+  @ExceptionHandler(StafferAlreadyLinkedException.class)
+  public ResponseEntity<ErrorDto> handleStafferAlreadyLinkedException(StafferAlreadyLinkedException ex) {
+    log.error("Caught TicketTypeMismatch Exception", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("Unable to link because staffer already linked ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(RequestNotFoundException.class)
+  public ResponseEntity<ErrorDto> handleRequestNotFoundException(RequestNotFoundException ex) {
+    log.error("Caught TicketTypeMismatch Exception", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("Unable to accept request because it doesn't exists ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+  @ExceptionHandler(DuplicateRequestException.class)
+  public ResponseEntity<ErrorDto> handleDuplicateRequestException(DuplicateRequestException ex) {
+    log.error("Caught TicketTypeMismatch Exception", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("Unable to Send request because it already exists ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+
   @ExceptionHandler(TicketAlreadyValidatedException.class)
   public ResponseEntity<ErrorDto> handleTicketAlreadyValidatedException(TicketAlreadyValidatedException ex) {
     log.error("Caught TicketTypeMismatch Exception", ex);

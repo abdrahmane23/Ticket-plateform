@@ -1,82 +1,76 @@
 package com.example.ticketPlatform.services.impl;
+import com.example.ticketPlatform.Repositories.TaskRepo;
 import com.example.ticketPlatform.Repositories.TicketTypeRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
-import com.example.ticketPlatform.domain.entities.Event;
-import com.example.ticketPlatform.domain.entities.TicketType;
-import com.example.ticketPlatform.domain.entities.User;
-import com.example.ticketPlatform.exceptions.EventNotFoundException;
-import com.example.ticketPlatform.exceptions.EventTicketException;
-import com.example.ticketPlatform.exceptions.StafferNotRegisteredException;
-import com.example.ticketPlatform.exceptions.UserNotFoundException;
+import com.example.ticketPlatform.domain.entities.*;
+import com.example.ticketPlatform.exceptions.*;
 import com.example.ticketPlatform.services.StaffingService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.keycloak.admin.client.Keycloak;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class StaffingServiceImpl implements StaffingService {
-    private final Keycloak keycloakAdminClient;
     private final UserRepo userRepo;
     private final TicketTypeRepo ticketTypeRepo;
-    private final String realm = "event-ticket-plateform";
-    private UserRepresentation user;
+    private final TaskRepo taskRepo;
 
     @Transactional
     @Override
-    public void AssignStaffToEvent(UUID ticketTypeId, UUID organizerId, String StafferUsername) {
-        TicketType AssignedticketType = getTicketTypeIfValid(ticketTypeId, organizerId);
+    public void assignStaffToEvent(UUID ticketTypeId, UUID organizerId, UUID stafferId) {
+        TicketType assignedticketType = getTicketTypeIfValid(ticketTypeId, organizerId);
+        User staffer = getStafferIfValid(stafferId, organizerId);
 
-        user = keycloakAdminClient.realm(realm)
-                    .users()
-                    .searchByUsername(StafferUsername,true)
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(
-                            ()-> new StafferNotRegisteredException("THIS staffer is not registred")
-                    );
-
-        UUID userId = UUID.fromString(user.getId());
-        User NewStaffer = userRepo.findById(userId)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setId(userId);
-                    newUser.setName(user.getUsername());
-                    newUser.setEmail(user.getEmail());
-                    return newUser;
-                });
-
-        NewStaffer.getStaffingEntries().add(AssignedticketType);
-        userRepo.save(NewStaffer);
-
+        if (taskRepo.existsByStafferIdAndStatus(stafferId, TaskStatusEnum.ACTIVE)) {
+            throw new EventTicketException("Staffer with ID " + stafferId + " is already assigned to an active task");
+        }
+        Task task = new Task();
+        task.setTicketType(assignedticketType);
+        task.setStaffer(staffer);
+        task.setStatus(TaskStatusEnum.ACTIVE);
+        taskRepo.save(task);
     }
 
     @Transactional
-    public void RemoveStaffFromEvent(UUID ticketTypeId, UUID organizerId, UUID userId) {
-        TicketType AssignedTicketType = getTicketTypeIfValid(ticketTypeId, organizerId);
-        User Staffer = userRepo.findById(userId)
+    @Override
+    public void removeTaskFromEvent( UUID organizerId, UUID taskId) {
+        Task task = taskRepo.findByIdAndStatus(taskId,TaskStatusEnum.ACTIVE)
                 .orElseThrow(
-                        ()-> new UserNotFoundException("staffer with ID " + userId + " not found"));
+                        ()-> new EventNotFoundException("invalid Task"));
 
-        Staffer.getStaffingEntries().remove(AssignedTicketType);
-        userRepo.save(Staffer);
+        boolean isOrganizerOfEvent = task.getTicketType().getEvent().getOrganizer().getId().equals(organizerId);
+        if (!isOrganizerOfEvent) {
+            throw new EventTicketException("Organizer with ID " + organizerId + " is not the organizer of event with ID " + task.getTicketType().getEvent().getId());
+        }
+
+        task.setStatus(TaskStatusEnum.CANCELED);
+        taskRepo.save(task);
     }
 
     private TicketType getTicketTypeIfValid(UUID ticketTypeId, UUID organizerId) {
         TicketType AssignedTicketType = ticketTypeRepo.findById(ticketTypeId).orElseThrow(
-                ()-> new EventNotFoundException("Event with ID " + ticketTypeId + " not found"));
+                ()-> new TicketTypeNotFoundException("Event with ID " + ticketTypeId + " not found"));
         User organizer=  userRepo.findById(organizerId).orElseThrow(
                 ()-> new UserNotFoundException(STR."this organizer with Id\{organizerId}doesnt exist ")
         );
-        if (!AssignedTicketType.getEvent().getOrganizer().getId().equals(organizer.getId())) {
+        if (!AssignedTicketType.getEvent().getOrganizer().equals(organizer)) {
             throw new EventTicketException(STR."Organizer with ID \{organizerId} is not the organizer of event with ID \{AssignedTicketType.getEvent().getOrganizer().getId()}");
         }
         return AssignedTicketType;
+    }
+
+    private User getStafferIfValid(UUID stafferId, UUID organizerId) {
+        User staffer = userRepo.findById(stafferId)
+                .orElseThrow(
+                        ()-> new UserNotFoundException("staffer with ID " + stafferId + " not found"));
+        StaffLink staffLink = staffer.getStaffLink();
+        if(staffLink==null || !staffLink.getOrganizer().getId().equals(organizerId)){
+            throw new StafferNotRegisteredException("Staffer with ID " + stafferId + " is not registered under organizer with ID " + organizerId);
+        }
+        return staffer;
     }
 }
