@@ -17,6 +17,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
+import static com.example.ticketPlatform.util.JwtUtil.JwtRoleExtractor.extractRoleEndingWithRole;
+
 @Component
 @RequiredArgsConstructor
 public class UserProvisioningFilter extends OncePerRequestFilter {
@@ -34,11 +36,12 @@ public class UserProvisioningFilter extends OncePerRequestFilter {
                 && authentication.getPrincipal() instanceof Jwt jwt){
             UUID keyclockId = UUID.fromString(jwt.getSubject());
             if (!userRepo.existsById(keyclockId)){
-                System.out.println("ddefefe");
                 User newUser = new  User();
                 newUser.setId(keyclockId);
                 newUser.setEmail(jwt.getClaimAsString("email"));
                 newUser.setName(jwt.getClaimAsString("preferred_username"));
+                String role = extractRoleEndingWithRole(jwt.getTokenValue());
+                newUser.setRole(role);
                 userRepo.save(newUser);
             }
         }

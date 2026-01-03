@@ -94,7 +94,6 @@ public class EventServiceImpl implements EventService {
         existingEvent.setSalesStart(event.getSalesStart());
         existingEvent.setSalesEnd(event.getSalesEnd());
         existingEvent.setStatus(event.getStatus());
-
         Set<UUID> requestTicketTypeIds = event.getTicketTypes()
                 .stream()
                 .map(UpdateTicketTypeRequest::getId)

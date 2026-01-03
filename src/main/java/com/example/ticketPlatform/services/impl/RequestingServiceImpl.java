@@ -7,13 +7,12 @@ import com.example.ticketPlatform.domain.entities.*;
 import com.example.ticketPlatform.exceptions.*;
 import com.example.ticketPlatform.services.RequestingService;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.core.Link;
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -92,33 +91,41 @@ public class RequestingServiceImpl implements RequestingService {
         validateRequestOwnership(request, uuid);
         requestRepo.delete(request);
     }
+    @Override
+    public Page<User> browseOrganizers(Pageable pageable) {
+        return userRepo.findByRole("ORGANIZER_ROLE",pageable);
+    }
 
     @Override
-    public void removeLink(UUID stafflinkId, UUID UserId, String RemoverRole) {
-        StaffLink staffLink = staffLinkRepo.findByIdAndStatus(stafflinkId,LinkStatusEnum.ACTIVE).orElseThrow(() ->
-                new StaffLinkNotFoundException("Staff link not found")
-        );
-
-        validateStaffLinkOwnership(staffLink, UserId, RemoverRole);
-
-        staffLink.getStaffer().getTasks().forEach(task -> {
-            if (task.getStatus() == TaskStatusEnum.ACTIVE) {
-                task.setStatus(TaskStatusEnum.INTERUPTED);
-            }
-        });
-        staffLink.setStatus(LinkStatusEnum.FINISHED);
-        staffLinkRepo.save(staffLink);
+    public Page<User> browseStaffers(Pageable pageable) {
+        return userRepo.findByRole("STAFF_ROLE",pageable);
     }
+
+    @Override
+    public User browseOrganizer(UUID organizerId) {
+        //CHECK IS STAFFER IS ASSGINED TO DISABLE THE REQUEST BUTTON
+        return userRepo.findByIdAndRole(organizerId,"ORGANIZER_ROLE").orElseThrow(() ->
+                new UserNotFoundException("Organizer not found")
+        );
+    }
+
+    @Override
+    public User browseStaffer(UUID stafferId) {
+        return userRepo.findByIdAndRole(stafferId,"STAFF_ROLE").orElseThrow(() ->
+                new UserNotFoundException("Staffer not found")
+        );
+    }
+
+    @Override
+    public Page<Request> browseRequests(UUID userId, Pageable pageable) {
+        return requestRepo.findByReceiverId(userId, pageable);
+    }
+
     private void validateRequestOwnership(Request request, UUID userId) {
         if (!request.getReceiver().getId().equals(userId)) {
             throw new EventTicketException("Request not found for this user");
         }
     }
-    private void validateStaffLinkOwnership(StaffLink staffLink, UUID UserId, String RemoverRole) {
-        if ( (RemoverRole.equals("STAFF_ROLE") && !staffLink.getStaffer().getId().equals(UserId)) ||
-                (RemoverRole.equals("ORGANIZER_ROLE") && !staffLink.getOrganizer().getId().equals(UserId)) ) {
-            throw new EventTicketException("Staff link not found for this user");
-        }
-    }
+
 
 }

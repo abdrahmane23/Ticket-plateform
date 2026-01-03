@@ -34,6 +34,8 @@ public class User {
 
   @Column(name = "email", nullable = false)
   private String email;
+  @Column(name = "role", nullable = false)
+  private String role;
 
 
   @OneToMany(mappedBy = "purchaser", cascade = CascadeType.ALL)
@@ -55,6 +57,10 @@ public class User {
 
   @OneToMany(mappedBy = "organizer", cascade = CascadeType.ALL)
   private List<StaffLink> StaffMembers = new ArrayList<>();
+
+  @OneToMany(mappedBy = "waiter", cascade = CascadeType.ALL)
+  private List<WaitCard> waitCards = new ArrayList<>();
+
   @CreatedDate
   @Column(name = "created_at", updatable = false, nullable = false)
   private LocalDateTime createdAt;

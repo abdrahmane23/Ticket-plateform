@@ -2,6 +2,8 @@ package com.example.ticketPlatform.Repositories;
 
 import com.example.ticketPlatform.domain.entities.Task;
 import com.example.ticketPlatform.domain.entities.TaskStatusEnum;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,4 +15,7 @@ public interface TaskRepo extends JpaRepository <Task, UUID> {
     public boolean existsByStafferIdAndStatus(UUID stafferId, TaskStatusEnum status);
 
     public Optional<Task> findByIdAndStatus(UUID ticketTypeId,TaskStatusEnum status);
+
+    Page<Task> findAllByTicketTypeId(UUID ticketTypeId, Pageable pageable);
+    Optional<Task> findByStafferId(UUID stafferId);
 }

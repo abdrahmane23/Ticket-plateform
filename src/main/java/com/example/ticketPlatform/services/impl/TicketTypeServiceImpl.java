@@ -38,6 +38,9 @@ public class TicketTypeServiceImpl implements TicketTypeService {
         .orElseThrow(() -> new TicketTypeNotFoundException(
             String.format("Ticket type with ID %s was not found", ticketTypeId)
         ));
+    if (ticketRepository.existsByTicketTypeIdAndPurchaserIdAndStatus(ticketTypeId, userId, TicketStatusEnum.PURCHASED)) {
+      throw new RuntimeException("User already has a ticket for this ticket type");
+    }
 
     int purchasedTickets = ticketRepository.countByTicketTypeId(ticketType.getId());
     Integer totalAvailable = ticketType.getTotalAvailable();
@@ -50,7 +53,8 @@ public class TicketTypeServiceImpl implements TicketTypeService {
     ticket.setStatus(TicketStatusEnum.PURCHASED);
     ticket.setTicketType(ticketType);
     ticket.setPurchaser(user);
-
+    ticketType.setTotalAvailable(ticketType.getTotalAvailable()-1);
+    ticketTypeRepository.save(ticketType);
     Ticket savedTicket = ticketRepository.save(ticket);
     qrCodeService.generateQrCode(savedTicket);
 

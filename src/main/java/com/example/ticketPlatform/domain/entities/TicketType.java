@@ -49,8 +49,13 @@ public class TicketType {
 
   @OneToMany(mappedBy = "ticketType", cascade = CascadeType.ALL)
   private List<Ticket> tickets = new ArrayList<>();
+
   @OneToMany(mappedBy = "ticketType", cascade = CascadeType.ALL)
   private List<Task> tasks = new ArrayList<>();
+
+  @OneToMany(mappedBy = "ticketType", cascade = CascadeType.ALL)
+  private List<WaitCard> waitCards = new ArrayList<>();
+
 
   @CreatedDate
   @Column(name = "created_at", updatable = false, nullable = false)

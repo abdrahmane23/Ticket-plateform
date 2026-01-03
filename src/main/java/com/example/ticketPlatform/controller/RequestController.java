@@ -1,18 +1,26 @@
 package com.example.ticketPlatform.controller;
 
+import com.example.ticketPlatform.domain.Dtos.BrowseEventResponseDto;
+import com.example.ticketPlatform.domain.Dtos.BrowseOrganizerResponseDto;
+import com.example.ticketPlatform.domain.Dtos.BrowseRequestResponseDto;
+import com.example.ticketPlatform.domain.Dtos.BrowseStafferResponseDto;
+import com.example.ticketPlatform.domain.entities.Request;
+import com.example.ticketPlatform.domain.entities.User;
+import com.example.ticketPlatform.mappers.RequestMapper;
+import com.example.ticketPlatform.mappers.UserMapper;
 import com.example.ticketPlatform.services.RequestingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import static com.example.ticketPlatform.util.JwtUtil.JwtRoleExtractor.extractRoleEndingWithRole;
@@ -23,6 +31,8 @@ import static com.example.ticketPlatform.util.JwtUtil.parseUserId;
 @RequiredArgsConstructor
 public class RequestController {
     private final RequestingService requestingService;
+    private final UserMapper userMapper;
+    private final RequestMapper requestMapper;
 
 
     @PostMapping("/{receiverId}")
@@ -50,13 +60,46 @@ public class RequestController {
         requestingService.rejectrequest( requestId, parseUserId(jwt));
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-    @PostMapping("/staffing/{stafflinkId}")
-    public ResponseEntity<Void> RemoveLink(@PathVariable UUID  stafflinkId,
-                                               @AuthenticationPrincipal Jwt jwt ){
-        String RemoverRole = extractRoleEndingWithRole(jwt.getTokenValue());
-        requestingService.removeLink(stafflinkId, parseUserId(jwt), RemoverRole);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @GetMapping("/organizers")
+    public ResponseEntity<Page<BrowseOrganizerResponseDto>> browseOrganizers(Pageable pageable) {
+        Page<User> organizers = requestingService.browseOrganizers(pageable);
+        return ResponseEntity.ok(
+                organizers.map(userMapper::toBrowseOrganizerResponseDto));
     }
+
+    @GetMapping("/staffers")
+    public ResponseEntity<Page<BrowseStafferResponseDto>> browseStaffers(Pageable pageable) {
+        Page<User> staffers = requestingService.browseStaffers(pageable);
+        return ResponseEntity.ok(
+                staffers.map(userMapper::toBrowseStafferResponseDto));
+    }
+    @GetMapping("/{organizerId}")
+    public ResponseEntity<BrowseOrganizerResponseDto> browseOrganizer(UUID organizerId) {
+        User organizer = requestingService.browseOrganizer(organizerId);
+        BrowseOrganizerResponseDto organizerResponseDto = userMapper.toBrowseOrganizerResponseDto(organizer);
+        return ResponseEntity.ok(organizerResponseDto);
+    }
+    @GetMapping("/{stafferId}")
+    public ResponseEntity<BrowseStafferResponseDto> browseStaffer(UUID stafferId) {
+        User organizer = requestingService.browseStaffer(stafferId);
+        BrowseStafferResponseDto stafferResponseDto = userMapper.toBrowseStafferResponseDto(organizer);
+        return ResponseEntity.ok(stafferResponseDto);
+    }
+    @GetMapping("/requests")
+    public ResponseEntity<Page<BrowseRequestResponseDto>> browseRequests(
+            @AuthenticationPrincipal Jwt jwt,
+            Pageable pageable
+    ) {
+        UUID userId = parseUserId(jwt);
+        Page<Request> requests = requestingService.browseRequests(userId,pageable);
+        return ResponseEntity.ok(
+                requests.map(requestMapper::toBrowseRequestResponseDto)
+        );
+    }
+    //IMPLEMENTING SENT REQUESTS WHEN WE REFACTOR REQUEST TO BE CANCELED.
+
+
+
 
 
 }
