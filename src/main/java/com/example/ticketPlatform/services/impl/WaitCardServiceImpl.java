@@ -4,10 +4,7 @@ import com.example.ticketPlatform.Repositories.TicketRepo;
 import com.example.ticketPlatform.Repositories.TicketTypeRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
 import com.example.ticketPlatform.Repositories.WaitCardRepo;
-import com.example.ticketPlatform.domain.entities.TicketStatusEnum;
-import com.example.ticketPlatform.domain.entities.TicketType;
-import com.example.ticketPlatform.domain.entities.User;
-import com.example.ticketPlatform.domain.entities.WaitCard;
+import com.example.ticketPlatform.domain.entities.*;
 import com.example.ticketPlatform.exceptions.TicketTypeNotFoundException;
 import com.example.ticketPlatform.exceptions.UserNotFoundException;
 import com.example.ticketPlatform.services.TicketTypeService;
@@ -55,14 +52,16 @@ public class WaitCardServiceImpl implements WaitCardService {
 
     @Override
     @Transactional
-    public void assignTicketToNextUser(UUID ticketTypeId) {
+    public UUID assignTicketToNextUser(UUID ticketTypeId) {
         User nextUser = waitCardRepo.findFirstByTicketTypeIdOrderByCreatedAtAsc(ticketTypeId).map(
                 WaitCard::getWaiter
         ).orElse(null);
         if (nextUser != null) {
             waitCardRepo.deleteByTicketTypeIdAndWaiterId(ticketTypeId, nextUser.getId());
-            ticketTypeService.purchaseTicket( nextUser.getId(),ticketTypeId);
+            Ticket ticket= ticketTypeService.purchaseTicket( nextUser.getId(),ticketTypeId);
         }
+        return nextUser != null ? nextUser.getId() : null;
+
     }
 
 }

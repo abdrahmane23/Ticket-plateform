@@ -8,5 +8,5 @@ import java.util.UUID;
 public interface WaitCardService {
     public void createWaitCard(UUID ticketTypeId, UUID userId);
 
-    void assignTicketToNextUser(UUID ticketTypeId);
+    UUID assignTicketToNextUser(UUID ticketTypeId);
 }

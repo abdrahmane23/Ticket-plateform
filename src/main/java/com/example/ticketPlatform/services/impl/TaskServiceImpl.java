@@ -4,6 +4,7 @@ import com.example.ticketPlatform.Repositories.TicketTypeRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
 import com.example.ticketPlatform.domain.entities.*;
 import com.example.ticketPlatform.exceptions.*;
+import com.example.ticketPlatform.services.NotificationDispatcher;
 import com.example.ticketPlatform.services.TaskService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class TaskServiceImpl implements TaskService {
     private final UserRepo userRepo;
     private final TicketTypeRepo ticketTypeRepo;
     private final TaskRepo taskRepo;
+    private final NotificationDispatcher notificationDispatcher;
 
     @Transactional
     @Override
@@ -35,6 +37,9 @@ public class TaskServiceImpl implements TaskService {
         task.setStaffer(staffer);
         task.setStatus(TaskStatusEnum.ACTIVE);
         taskRepo.save(task);
+        notificationDispatcher.dispatch(stafferId,
+                "You have been assigned to a new task for event: " + assignedticketType.getEvent().getName());
+
     }
 
     @Transactional
@@ -51,6 +56,9 @@ public class TaskServiceImpl implements TaskService {
 
         task.setStatus(TaskStatusEnum.CANCELED);
         taskRepo.save(task);
+        UUID stafferId = task.getStaffer().getId();
+        notificationDispatcher.dispatch(stafferId,
+                "Your task for event: " + task.getTicketType().getEvent().getName() + " has been canceled.");
     }
 
     @Override

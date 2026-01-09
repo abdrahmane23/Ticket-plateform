@@ -8,7 +8,10 @@ import com.example.ticketPlatform.domain.entities.TaskStatusEnum;
 import com.example.ticketPlatform.domain.entities.User;
 import com.example.ticketPlatform.exceptions.EventTicketException;
 import com.example.ticketPlatform.exceptions.StaffLinkNotFoundException;
+import com.example.ticketPlatform.services.NotificationDispatcher;
+import com.example.ticketPlatform.services.NotificationService;
 import com.example.ticketPlatform.services.StafflinkService;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,8 +22,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class StaffLinkServiceImpl implements StafflinkService {
     private final StaffLinkRepo staffLinkRepo;
-    private final UserRepo userRepo;
-
+    private final NotificationDispatcher notificationDispatcher;
     @Override
     public Page<User> browseStaffers(UUID organizerId, Pageable pageable) {
         return staffLinkRepo.findAllByOrganizerIdAndStatus(organizerId, LinkStatusEnum.ACTIVE, pageable)
@@ -28,6 +30,7 @@ public class StaffLinkServiceImpl implements StafflinkService {
     }
 
     @Override
+    @Transactional
     public void removeLink(UUID stafflinkId, UUID UserId, String RemoverRole) {
         StaffLink staffLink = staffLinkRepo.findByIdAndStatus(stafflinkId, LinkStatusEnum.ACTIVE).orElseThrow(() ->
                 new StaffLinkNotFoundException("Staff link not found")
@@ -42,6 +45,10 @@ public class StaffLinkServiceImpl implements StafflinkService {
         });
         staffLink.setStatus(LinkStatusEnum.FINISHED);
         staffLinkRepo.save(staffLink);
+        UUID stafferId = staffLink.getStaffer().getId();
+        String organizerName = staffLink.getOrganizer().getName();
+        notificationDispatcher.dispatch(stafferId, "Your staff link with " + organizerName +" has been removed.");
+
     }
 
     @Override

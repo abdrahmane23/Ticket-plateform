@@ -5,6 +5,7 @@ import com.example.ticketPlatform.Repositories.StaffLinkRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
 import com.example.ticketPlatform.domain.entities.*;
 import com.example.ticketPlatform.exceptions.*;
+import com.example.ticketPlatform.services.NotificationDispatcher;
 import com.example.ticketPlatform.services.RequestingService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class RequestingServiceImpl implements RequestingService {
     private final UserRepo userRepo;
     private final RequestRepo requestRepo;
     private final StaffLinkRepo staffLinkRepo;
+    private final NotificationDispatcher notificationDispatcher;
     @Transactional
     @Override
     public void sendrequest(UUID senderId, UUID receiverId, String senderRole) {
@@ -81,6 +83,8 @@ public class RequestingServiceImpl implements RequestingService {
         staffLink.setStatus(LinkStatusEnum.ACTIVE);
         staffLinkRepo.save(staffLink);
         requestRepo.delete(request);
+        notificationDispatcher.dispatch(request.getSender().getId(),
+                "Your request to link with " + request.getReceiver().getName() + " has been accepted.");
     }
 
     @Override

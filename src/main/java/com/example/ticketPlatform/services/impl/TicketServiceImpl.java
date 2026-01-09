@@ -9,6 +9,7 @@ import com.example.ticketPlatform.domain.entities.Ticket;
 import com.example.ticketPlatform.domain.entities.TicketStatusEnum;
 import com.example.ticketPlatform.domain.entities.TicketType;
 import com.example.ticketPlatform.domain.entities.User;
+import com.example.ticketPlatform.services.NotificationDispatcher;
 import com.example.ticketPlatform.services.TicketService;
 import com.example.ticketPlatform.services.WaitCardService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class TicketServiceImpl implements TicketService {
   private final UserRepo userRepository;
   private final WaitCardService waitCardService;
   private final TicketTypeRepo ticketTypeRepository;
+  private final NotificationDispatcher notificationDispatcher;
 
   @Override
   public Page<Ticket> listTicketsForUser(UUID userId, Pageable pageable) {
@@ -51,7 +53,8 @@ public class TicketServiceImpl implements TicketService {
     ticketType.setTotalAvailable(ticketType.getTotalAvailable() + 1);
     ticketRepository.save(ticket);
     ticketTypeRepository.save(ticketType);
-    waitCardService.assignTicketToNextUser(ticketType.getId());
+    UUID nextUserId= waitCardService.assignTicketToNextUser(ticketType.getId());
+    notificationDispatcher.dispatch(nextUserId, "Good news! A ticket for " + ticketType.getName() + " is now purchased for you.");
 
 
 
