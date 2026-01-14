@@ -51,7 +51,7 @@ public class TaskServiceImpl implements TaskService {
 
         boolean isOrganizerOfEvent = task.getTicketType().getEvent().getOrganizer().getId().equals(organizerId);
         if (!isOrganizerOfEvent) {
-            throw new EventTicketException("Organizer with ID " + organizerId + " is not the organizer of event with ID " + task.getTicketType().getEvent().getId());
+            throw new TaskOwnershipException("Organizer with ID " + organizerId + " is not the organizer of event with ID " + task.getTicketType().getEvent().getId());
         }
 
         task.setStatus(TaskStatusEnum.CANCELED);
@@ -88,7 +88,7 @@ public class TaskServiceImpl implements TaskService {
                 ()-> new UserNotFoundException(STR."this organizer with Id\{organizerId}doesnt exist ")
         );
         if (!AssignedTicketType.getEvent().getOrganizer().equals(organizer)) {
-            throw new EventTicketException(STR."Organizer with ID \{organizerId} is not the organizer of event with ID \{AssignedTicketType.getEvent().getOrganizer().getId()}");
+            throw new EventOwnershipException(STR."Organizer with ID \{organizerId} is not the organizer of event with ID \{AssignedTicketType.getEvent().getOrganizer().getId()}");
         }
         return AssignedTicketType;
     }
@@ -110,7 +110,7 @@ public class TaskServiceImpl implements TaskService {
                 ()-> new UserNotFoundException(STR."this organizer with Id\{organizerId}doesnt exist ")
         );
         if (!AssignedTicketType.getEvent().getOrganizer().equals(organizer)) {
-            throw new EventTicketException(STR."Organizer with ID \{organizerId} is not the organizer of event with ID \{AssignedTicketType.getEvent().getOrganizer().getId()}");
+            throw new EventOwnershipException(STR."Organizer with ID \{organizerId} is not the organizer of event with ID \{AssignedTicketType.getEvent().getOrganizer().getId()}");
         }
     }
     private void verifyStafferOwnership(UUID stafferId, UUID organizerId) {

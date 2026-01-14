@@ -18,33 +18,109 @@ import java.util.List;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+  @ExceptionHandler(DuplicateWaitcardException.class)
+  public ResponseEntity<ErrorDto> DuplicateWaitcardException(DuplicateWaitcardException ex) {
+    log.error("Caught DuplicateWaitcard Exception  ", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("unable to enter waitlist because tickets are still available ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+  @ExceptionHandler(TicketAvailableException.class)
+  public ResponseEntity<ErrorDto> TicketAvailable(TicketAvailableException ex) {
+    log.error("Caught TicketAvailable Exception  ", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("unable to enter waitlist because tickets are still available ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+  @ExceptionHandler(TicketAlreadyExistException.class)
+  public ResponseEntity<ErrorDto> TicketAlreadyExistException(TicketAlreadyExistException ex) {
+    log.error("Caught TicketAlreadyExist Exception  ", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("unable to enter waitlist because u already own a ticket for this event ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+  @ExceptionHandler(StafferNotRegisteredException.class)
+  public ResponseEntity<ErrorDto> StafferNotRegisteredException(StafferNotRegisteredException ex) {
+    log.error("Caught StafferNotRegistered Exception  ", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("unable to browse tasks because staffer is not register under this organizer ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+  @ExceptionHandler(EventOwnershipException.class)
+  public ResponseEntity<ErrorDto> EventOwnershipException(EventOwnershipException ex) {
+    log.error("Caught EventOwnership Exception  ", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("unable to update TicketType because of false ownership ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+  @ExceptionHandler(TaskOwnershipException.class)
+  public ResponseEntity<ErrorDto> TaskOwnershipException(TaskOwnershipException ex) {
+    log.error("Caught TaskOwnership Exception ", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("unable to update task because of false ownership ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+  @ExceptionHandler(StaffLinkOwnershipException.class)
+  public ResponseEntity<ErrorDto> StaffLinkOwnershipException(StaffLinkOwnershipException ex) {
+    log.error("Caught StaffLinkOwnership Exception", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("unable to remove link because of false ownership ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
 
+  //exceptions for requests
+  @ExceptionHandler(RequestOwnershipException.class)
+  public ResponseEntity<ErrorDto> RequestOwnershipException(RequestOwnershipException ex) {
+    log.error("Caught RequestOwnership Exception", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("unable to accept request because of false ownership ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(IvalideRoleException.class)
+  public ResponseEntity<ErrorDto> IvalideRoleException(IvalideRoleException ex) {
+    log.error("Caught IvalideRole Exception", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("unable to accept request because of invalid role ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(RequestException.class)
+  public ResponseEntity<ErrorDto> RequestException(RequestException ex) {
+    log.error("Caught Request Exception", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("Unable to create request because staffer already linked ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
   @ExceptionHandler(StafferAlreadyLinkedException.class)
   public ResponseEntity<ErrorDto> handleStafferAlreadyLinkedException(StafferAlreadyLinkedException ex) {
-    log.error("Caught TicketTypeMismatch Exception", ex);
+    log.error("Caught StafferAlreadyLinked Exception", ex);
     ErrorDto errorDto = new ErrorDto();
     errorDto.setError("Unable to link because staffer already linked ");
     return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
   }
-
   @ExceptionHandler(RequestNotFoundException.class)
   public ResponseEntity<ErrorDto> handleRequestNotFoundException(RequestNotFoundException ex) {
-    log.error("Caught TicketTypeMismatch Exception", ex);
+    log.error("Caught RequestNotFound Exception", ex);
     ErrorDto errorDto = new ErrorDto();
     errorDto.setError("Unable to accept request because it doesn't exists ");
     return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
   }
   @ExceptionHandler(DuplicateRequestException.class)
   public ResponseEntity<ErrorDto> handleDuplicateRequestException(DuplicateRequestException ex) {
-    log.error("Caught TicketTypeMismatch Exception", ex);
+    log.error("Caught DuplicateRequest Exception", ex);
     ErrorDto errorDto = new ErrorDto();
     errorDto.setError("Unable to Send request because it already exists ");
     return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
   }
 
+
+
+
+
   @ExceptionHandler(TicketAlreadyValidatedException.class)
   public ResponseEntity<ErrorDto> handleTicketAlreadyValidatedException(TicketAlreadyValidatedException ex) {
-    log.error("Caught TicketTypeMismatch Exception", ex);
+    log.error("Caught TicketAlreadyValidated Exception", ex);
     ErrorDto errorDto = new ErrorDto();
     errorDto.setError("Unable to Validate ticket because it has already been validated ");
     return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);

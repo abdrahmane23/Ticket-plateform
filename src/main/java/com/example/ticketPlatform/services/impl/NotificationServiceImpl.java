@@ -37,7 +37,6 @@ public class NotificationServiceImpl implements NotificationService {
     public SseEmitter SubscribeToNotifications(UUID userId) {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE); // Infinite timeout
 
-
         usersMap.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(emitter);
         emitter.onCompletion(() -> usersMap.get(userId).remove(emitter));
         emitter.onTimeout(() -> usersMap.get(userId).remove(emitter));

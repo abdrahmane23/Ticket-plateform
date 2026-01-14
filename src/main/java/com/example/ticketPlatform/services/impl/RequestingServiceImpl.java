@@ -40,7 +40,7 @@ public class RequestingServiceImpl implements RequestingService {
             throw new DuplicateRequestException("Staff link already exists between these users");
         }
         if (senderRole.equals("STAFF_ROLE") && staffLinkRepo.existsByStafferIdAndStatus(senderId, LinkStatusEnum.ACTIVE)) {
-            throw new EventTicketException("Staffer with ID " + senderId + " is already on link, cannot send request");
+            throw new   RequestException("Staffer with ID " + senderId + " is already on link, cannot send request");
         }
 
         Request request = new Request();
@@ -70,12 +70,12 @@ public class RequestingServiceImpl implements RequestingService {
             staffer = request.getSender();
             organizer = request.getReceiver();
         } else {
-            throw new EventTicketException("Invalid receiver role");
+            throw new IvalideRoleException("Invalid receiver role");
 
         }
 
         if (staffLinkRepo.existsByStafferIdAndStatus(staffer.getId(), LinkStatusEnum.ACTIVE)) {
-            throw new EventTicketException("Staffer with ID " + staffer.getId() + " is already assigned to an active link");
+            throw new StafferAlreadyLinkedException("Staffer with ID " + staffer.getId() + " is already assigned to an active link");
         }
         StaffLink staffLink = new StaffLink();
         staffLink.setOrganizer(organizer);
@@ -127,7 +127,7 @@ public class RequestingServiceImpl implements RequestingService {
 
     private void validateRequestOwnership(Request request, UUID userId) {
         if (!request.getReceiver().getId().equals(userId)) {
-            throw new EventTicketException("Request not found for this user");
+            throw new RequestOwnershipException("Request not found for this user");
         }
     }
 

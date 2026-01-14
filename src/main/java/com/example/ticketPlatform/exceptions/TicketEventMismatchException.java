@@ -1,6 +1,6 @@
 package com.example.ticketPlatform.exceptions;
 
-public class TicketEventMismatchException extends TicketTypeMismatchException {
+public class TicketEventMismatchException extends EventTicketException {
     public TicketEventMismatchException() {
     }
 

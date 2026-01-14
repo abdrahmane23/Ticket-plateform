@@ -24,7 +24,6 @@ import static com.example.ticketPlatform.util.JwtUtil.JwtRoleExtractor.extractRo
 public class UserProvisioningFilter extends OncePerRequestFilter {
     private final UserRepo userRepo;
 
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,

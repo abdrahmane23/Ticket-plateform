@@ -8,6 +8,7 @@ import com.example.ticketPlatform.domain.entities.TaskStatusEnum;
 import com.example.ticketPlatform.domain.entities.User;
 import com.example.ticketPlatform.exceptions.EventTicketException;
 import com.example.ticketPlatform.exceptions.StaffLinkNotFoundException;
+import com.example.ticketPlatform.exceptions.StaffLinkOwnershipException;
 import com.example.ticketPlatform.services.NotificationDispatcher;
 import com.example.ticketPlatform.services.NotificationService;
 import com.example.ticketPlatform.services.StafflinkService;
@@ -67,7 +68,7 @@ public class StaffLinkServiceImpl implements StafflinkService {
     private void validateStaffLinkOwnership(StaffLink staffLink, UUID UserId, String RemoverRole) {
         if ( (RemoverRole.equals("STAFF_ROLE") && !staffLink.getStaffer().getId().equals(UserId)) ||
                 (RemoverRole.equals("ORGANIZER_ROLE") && !staffLink.getOrganizer().getId().equals(UserId)) ) {
-            throw new EventTicketException("Staff link not found for this user");
+            throw new StaffLinkOwnershipException("Staff link not found for this user");
         }
     }
 

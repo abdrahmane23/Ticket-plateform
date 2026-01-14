@@ -5,8 +5,7 @@ import com.example.ticketPlatform.Repositories.TicketTypeRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
 import com.example.ticketPlatform.Repositories.WaitCardRepo;
 import com.example.ticketPlatform.domain.entities.*;
-import com.example.ticketPlatform.exceptions.TicketTypeNotFoundException;
-import com.example.ticketPlatform.exceptions.UserNotFoundException;
+import com.example.ticketPlatform.exceptions.*;
 import com.example.ticketPlatform.services.TicketTypeService;
 import com.example.ticketPlatform.services.WaitCardService;
 import jakarta.transaction.Transactional;
@@ -35,10 +34,10 @@ public class WaitCardServiceImpl implements WaitCardService {
                         () -> new UserNotFoundException("User not found")
                 );
         if (ticketType.getTotalAvailable()>0){
-            throw new RuntimeException("Tickets are available, no need to create wait card");
+            throw new TicketAvailableException("Tickets are available, no need to create wait card");
         }
         if( ticketRepo.existsByTicketTypeIdAndPurchaserIdAndStatus(ticketTypeId, userId, TicketStatusEnum.PURCHASED)) {
-            throw new RuntimeException("User already has a ticket for this ticket type");
+            throw new TicketAlreadyExistException("User already has a ticket for this ticket type");
         }
         WaitCard waitCard = new WaitCard();
         waitCard.setTicketType(ticketType);
@@ -46,7 +45,7 @@ public class WaitCardServiceImpl implements WaitCardService {
         try {
             waitCardRepo.save(waitCard);
         } catch (DataIntegrityViolationException e) {
-            throw new RuntimeException("Wait card already exists for this user and ticket type");
+            throw new DuplicateWaitcardException("Wait card already exists for this user and ticket type");
         }
     }
 

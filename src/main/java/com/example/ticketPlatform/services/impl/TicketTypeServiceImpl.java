@@ -7,6 +7,7 @@ import com.example.ticketPlatform.domain.entities.Ticket;
 import com.example.ticketPlatform.domain.entities.TicketStatusEnum;
 import com.example.ticketPlatform.domain.entities.TicketType;
 import com.example.ticketPlatform.domain.entities.User;
+import com.example.ticketPlatform.exceptions.TicketAlreadyExistException;
 import com.example.ticketPlatform.exceptions.TicketTypeNotFoundException;
 import com.example.ticketPlatform.exceptions.TicketsSoldOutException;
 import com.example.ticketPlatform.exceptions.UserNotFoundException;
@@ -39,7 +40,7 @@ public class TicketTypeServiceImpl implements TicketTypeService {
             String.format("Ticket type with ID %s was not found", ticketTypeId)
         ));
     if (ticketRepository.existsByTicketTypeIdAndPurchaserIdAndStatus(ticketTypeId, userId, TicketStatusEnum.PURCHASED)) {
-      throw new RuntimeException("User already has a ticket for this ticket type");
+      throw new TicketAlreadyExistException("User already has a ticket for this ticket type");
     }
 
     int purchasedTickets = ticketRepository.countByTicketTypeId(ticketType.getId());
