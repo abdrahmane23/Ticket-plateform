@@ -2,6 +2,7 @@ package com.example.ticketPlatform.services.impl;
 
 import com.example.ticketPlatform.Repositories.EventRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
+import com.example.ticketPlatform.Validators.UserValidator;
 import com.example.ticketPlatform.domain.CreateEventRequest;
 import com.example.ticketPlatform.domain.UpdateEventRequest;
 import com.example.ticketPlatform.domain.UpdateTicketTypeRequest;
@@ -29,13 +30,13 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
     private final UserRepo useRepository;
     private final EventRepo eventRepository;
+    private final UserValidator userValidator;
 
     @Override
     public Event createEvent(UUID organizerId, CreateEventRequest event) {
-        User organizer= useRepository.findById(organizerId)
-                .orElseThrow(
-                        () -> new UserNotFoundException("User with id '%s' not found")
-                        );
+
+        User organizer= userValidator.getUserIfExists(organizerId,"ORGANIZER");
+
         Event newEvent = new Event();
         List<TicketType> newTicketType = event.getTicketTypes().stream().map(
                 ticketType -> {

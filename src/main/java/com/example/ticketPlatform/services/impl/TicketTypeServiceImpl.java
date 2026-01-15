@@ -3,6 +3,9 @@ package com.example.ticketPlatform.services.impl;
 import com.example.ticketPlatform.Repositories.TicketRepo;
 import com.example.ticketPlatform.Repositories.TicketTypeRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
+import com.example.ticketPlatform.Validators.TicketTypeValidator;
+import com.example.ticketPlatform.Validators.TicketValidator;
+import com.example.ticketPlatform.Validators.UserValidator;
 import com.example.ticketPlatform.domain.entities.Ticket;
 import com.example.ticketPlatform.domain.entities.TicketStatusEnum;
 import com.example.ticketPlatform.domain.entities.TicketType;
@@ -27,28 +30,20 @@ public class TicketTypeServiceImpl implements TicketTypeService {
   private final TicketTypeRepo ticketTypeRepository;
   private final TicketRepo ticketRepository;
   private final QrCodeService qrCodeService;
+  private  final UserValidator userValidator;
+  private final TicketValidator ticketValidator;
+  private final TicketTypeValidator ticketTypeValidator;
 
   @Override
   @Transactional
   public Ticket purchaseTicket(UUID userId, UUID ticketTypeId) {
-    User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(
-        String.format("User with ID %s was not found", userId)
-    ));
+    User user = userValidator.getUserIfExists(userId,"USER");
 
-    TicketType ticketType = ticketTypeRepository.findByIdWithLock(ticketTypeId)
-        .orElseThrow(() -> new TicketTypeNotFoundException(
-            String.format("Ticket type with ID %s was not found", ticketTypeId)
-        ));
-    if (ticketRepository.existsByTicketTypeIdAndPurchaserIdAndStatus(ticketTypeId, userId, TicketStatusEnum.PURCHASED)) {
-      throw new TicketAlreadyExistException("User already has a ticket for this ticket type");
-    }
+    TicketType ticketType = ticketTypeValidator.getTicketTypeWithLock(ticketTypeId);
 
-    int purchasedTickets = ticketRepository.countByTicketTypeId(ticketType.getId());
-    Integer totalAvailable = ticketType.getTotalAvailable();
+    ticketValidator.checkDuplicateTicket(userId, ticketTypeId);
 
-    if(purchasedTickets + 1 > totalAvailable) {
-      throw new TicketsSoldOutException();
-    }
+
 
     Ticket ticket = new Ticket();
     ticket.setStatus(TicketStatusEnum.PURCHASED);
@@ -57,6 +52,7 @@ public class TicketTypeServiceImpl implements TicketTypeService {
     ticketType.setTotalAvailable(ticketType.getTotalAvailable()-1);
     ticketTypeRepository.save(ticketType);
     Ticket savedTicket = ticketRepository.save(ticket);
+
     qrCodeService.generateQrCode(savedTicket);
 
     return ticketRepository.save(savedTicket);

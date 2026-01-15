@@ -3,10 +3,13 @@ package com.example.ticketPlatform.services.impl;
 import com.example.ticketPlatform.Repositories.RequestRepo;
 import com.example.ticketPlatform.Repositories.StaffLinkRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
+import com.example.ticketPlatform.Validators.RequestValidator;
+import com.example.ticketPlatform.Validators.UserValidator;
 import com.example.ticketPlatform.domain.entities.*;
 import com.example.ticketPlatform.exceptions.*;
 import com.example.ticketPlatform.services.NotificationDispatcher;
 import com.example.ticketPlatform.services.RequestingService;
+import com.example.ticketPlatform.services.StafflinkService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,13 +27,14 @@ public class RequestingServiceImpl implements RequestingService {
     private final RequestRepo requestRepo;
     private final StaffLinkRepo staffLinkRepo;
     private final NotificationDispatcher notificationDispatcher;
+    private final StafflinkService stafflinkService;
+    private final UserValidator userValidator;
+    private final RequestValidator requestValidator;
     @Transactional
     @Override
     public void sendrequest(UUID senderId, UUID receiverId, String senderRole) {
-        User sender = userRepo.findById(senderId)
-                .orElseThrow(() -> new UserNotFoundException(String.format("Sender with %s not found", senderId)));
-        User receiver = userRepo.findById(receiverId)
-                .orElseThrow(() -> new UserNotFoundException(String.format("receiver with %s not found", receiverId)));
+        User sender = userValidator.getUserIfExists(senderId,"SENDER");
+        User receiver = userValidator.getUserIfExists(receiverId,"RECEIVER");
 
         boolean ActiveLinkExist =
                 staffLinkRepo.existsByStafferIdAndOrganizerIdAndStatus(receiverId, senderId, LinkStatusEnum.ACTIVE ) ||
@@ -56,35 +60,11 @@ public class RequestingServiceImpl implements RequestingService {
     @Transactional
     @Override
     public void acceptrequest(UUID requestId, UUID uuid, String receiverRole) {
-        Request request = requestRepo.findById(requestId).
-                orElseThrow(() -> new RequestNotFoundException("Request not found"));
+        Request request = requestValidator.getRequestIfExists(requestId);
 
-        validateRequestOwnership(request, uuid);
-
-        User staffer;
-        User organizer;
-        if (receiverRole.equals("STAFF_ROLE") ){
-            staffer = request.getReceiver();
-            organizer = request.getSender();
-        } else if (receiverRole.equals("ORGANIZER_ROLE") ){
-            staffer = request.getSender();
-            organizer = request.getReceiver();
-        } else {
-            throw new IvalideRoleException("Invalid receiver role");
-
-        }
-
-        if (staffLinkRepo.existsByStafferIdAndStatus(staffer.getId(), LinkStatusEnum.ACTIVE)) {
-            throw new StafferAlreadyLinkedException("Staffer with ID " + staffer.getId() + " is already assigned to an active link");
-        }
-        StaffLink staffLink = new StaffLink();
-        staffLink.setOrganizer(organizer);
-        staffLink.setStaffer(staffer);
-        staffLink.setStatus(LinkStatusEnum.ACTIVE);
-        staffLinkRepo.save(staffLink);
+        requestValidator.validateRequestOwnership(request, uuid);
+        stafflinkService.createLink(request, receiverRole);
         requestRepo.delete(request);
-        notificationDispatcher.dispatch(request.getSender().getId(),
-                "Your request to link with " + request.getReceiver().getName() + " has been accepted.");
     }
 
     @Override
@@ -92,7 +72,7 @@ public class RequestingServiceImpl implements RequestingService {
         Request request = requestRepo.findById(requestId).orElseThrow(() ->
                 new RequestNotFoundException("Request not found")
         );
-        validateRequestOwnership(request, uuid);
+        requestValidator.validateRequestOwnership(request, uuid);
         requestRepo.delete(request);
     }
     @Override
@@ -125,11 +105,6 @@ public class RequestingServiceImpl implements RequestingService {
         return requestRepo.findByReceiverId(userId, pageable);
     }
 
-    private void validateRequestOwnership(Request request, UUID userId) {
-        if (!request.getReceiver().getId().equals(userId)) {
-            throw new RequestOwnershipException("Request not found for this user");
-        }
-    }
 
 
 }

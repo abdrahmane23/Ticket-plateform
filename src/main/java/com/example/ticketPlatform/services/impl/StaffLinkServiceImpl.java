@@ -1,14 +1,11 @@
 package com.example.ticketPlatform.services.impl;
 
+import com.example.ticketPlatform.Repositories.RequestRepo;
 import com.example.ticketPlatform.Repositories.StaffLinkRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
-import com.example.ticketPlatform.domain.entities.LinkStatusEnum;
-import com.example.ticketPlatform.domain.entities.StaffLink;
-import com.example.ticketPlatform.domain.entities.TaskStatusEnum;
-import com.example.ticketPlatform.domain.entities.User;
-import com.example.ticketPlatform.exceptions.EventTicketException;
-import com.example.ticketPlatform.exceptions.StaffLinkNotFoundException;
-import com.example.ticketPlatform.exceptions.StaffLinkOwnershipException;
+import com.example.ticketPlatform.Validators.StaffLinkValidator;
+import com.example.ticketPlatform.domain.entities.*;
+import com.example.ticketPlatform.exceptions.*;
 import com.example.ticketPlatform.services.NotificationDispatcher;
 import com.example.ticketPlatform.services.NotificationService;
 import com.example.ticketPlatform.services.StafflinkService;
@@ -24,6 +21,7 @@ import java.util.UUID;
 public class StaffLinkServiceImpl implements StafflinkService {
     private final StaffLinkRepo staffLinkRepo;
     private final NotificationDispatcher notificationDispatcher;
+    private final StaffLinkValidator staffLinkValidator;
     @Override
     public Page<User> browseStaffers(UUID organizerId, Pageable pageable) {
         return staffLinkRepo.findAllByOrganizerIdAndStatus(organizerId, LinkStatusEnum.ACTIVE, pageable)
@@ -31,13 +29,35 @@ public class StaffLinkServiceImpl implements StafflinkService {
     }
 
     @Override
+    public void createLink(Request request, String receiverRole) {
+        User staffer;
+        User organizer;
+        if (receiverRole.equals("STAFF_ROLE") ){
+            staffer = request.getReceiver();
+            organizer = request.getSender();
+        } else if (receiverRole.equals("ORGANIZER_ROLE") ){
+            staffer = request.getSender();
+            organizer = request.getReceiver();
+        } else {
+            throw new IvalideRoleException("Invalid receiver role");
+
+        }
+        staffLinkValidator.isStafferLinked(staffer.getId());
+        StaffLink staffLink = new StaffLink();
+        staffLink.setOrganizer(organizer);
+        staffLink.setStaffer(staffer);
+        staffLink.setStatus(LinkStatusEnum.ACTIVE);
+        staffLinkRepo.save(staffLink);
+        notificationDispatcher.dispatch(request.getSender().getId(),
+                "Your request to link with " + request.getReceiver().getName() + " has been accepted.");
+    }
+
+    @Override
     @Transactional
     public void removeLink(UUID stafflinkId, UUID UserId, String RemoverRole) {
-        StaffLink staffLink = staffLinkRepo.findByIdAndStatus(stafflinkId, LinkStatusEnum.ACTIVE).orElseThrow(() ->
-                new StaffLinkNotFoundException("Staff link not found")
-        );
+        StaffLink staffLink = staffLinkValidator.getStaffLinkIfExists(stafflinkId);
 
-        validateStaffLinkOwnership(staffLink, UserId, RemoverRole);
+        staffLinkValidator.validateStaffLinkOwnership(staffLink, UserId, RemoverRole);
 
         staffLink.getStaffer().getTasks().forEach(task -> {
             if (task.getStatus() == TaskStatusEnum.ACTIVE) {
@@ -63,13 +83,6 @@ public class StaffLinkServiceImpl implements StafflinkService {
         return staffLinkRepo.findByStatusAndStafferId(LinkStatusEnum.ACTIVE,StafferId)
                 .getOrganizer();
 
-    }
-
-    private void validateStaffLinkOwnership(StaffLink staffLink, UUID UserId, String RemoverRole) {
-        if ( (RemoverRole.equals("STAFF_ROLE") && !staffLink.getStaffer().getId().equals(UserId)) ||
-                (RemoverRole.equals("ORGANIZER_ROLE") && !staffLink.getOrganizer().getId().equals(UserId)) ) {
-            throw new StaffLinkOwnershipException("Staff link not found for this user");
-        }
     }
 
 }

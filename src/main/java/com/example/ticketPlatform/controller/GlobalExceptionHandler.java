@@ -18,6 +18,21 @@ import java.util.List;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+  @ExceptionHandler(TicketOwnershipException.class)
+  public ResponseEntity<ErrorDto> TicketOwnershipException (TicketOwnershipException ex) {
+    log.error("Caught TicketOwnership Exception  ", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("unable to get ticket because of false ownership ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+  @ExceptionHandler(TaskNotFoundException.class)
+  public ResponseEntity<ErrorDto> TaskNotFoundException(TaskNotFoundException ex) {
+    log.error("Caught TaskNotFound Exception  ", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("unable to find active task with given id ");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+
   @ExceptionHandler(DuplicateWaitcardException.class)
   public ResponseEntity<ErrorDto> DuplicateWaitcardException(DuplicateWaitcardException ex) {
     log.error("Caught DuplicateWaitcard Exception  ", ex);

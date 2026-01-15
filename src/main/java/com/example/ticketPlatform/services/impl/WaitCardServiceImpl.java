@@ -4,6 +4,9 @@ import com.example.ticketPlatform.Repositories.TicketRepo;
 import com.example.ticketPlatform.Repositories.TicketTypeRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
 import com.example.ticketPlatform.Repositories.WaitCardRepo;
+import com.example.ticketPlatform.Validators.TicketTypeValidator;
+import com.example.ticketPlatform.Validators.TicketValidator;
+import com.example.ticketPlatform.Validators.UserValidator;
 import com.example.ticketPlatform.domain.entities.*;
 import com.example.ticketPlatform.exceptions.*;
 import com.example.ticketPlatform.services.TicketTypeService;
@@ -22,23 +25,18 @@ public class WaitCardServiceImpl implements WaitCardService {
     private final WaitCardRepo waitCardRepo;
     private final TicketRepo ticketRepo;
     private final TicketTypeService ticketTypeService;
+    private final UserValidator userValidator;
+    private final TicketTypeValidator ticketTypeValidator;
+    private final TicketValidator ticketValidator;
 
     @Override
     public void createWaitCard(UUID ticketTypeId, UUID userId) {
-        TicketType ticketType = ticketTypeRepo.findById(ticketTypeId).
-                orElseThrow(
-                        () -> new TicketTypeNotFoundException("Ticket type not found")
-                );
-        User user = userRepo.findById(userId).
-                orElseThrow(
-                        () -> new UserNotFoundException("User not found")
-                );
-        if (ticketType.getTotalAvailable()>0){
-            throw new TicketAvailableException("Tickets are available, no need to create wait card");
-        }
-        if( ticketRepo.existsByTicketTypeIdAndPurchaserIdAndStatus(ticketTypeId, userId, TicketStatusEnum.PURCHASED)) {
-            throw new TicketAlreadyExistException("User already has a ticket for this ticket type");
-        }
+        TicketType ticketType = ticketTypeValidator.getTicketTypeIfExist(ticketTypeId);
+        User user = userValidator.getUserIfExists(userId,"USER");
+
+        ticketTypeValidator.checkTicketTypeAvailability(ticketType);
+        ticketValidator.checkDuplicateTicket(userId, ticketTypeId);
+
         WaitCard waitCard = new WaitCard();
         waitCard.setTicketType(ticketType);
         waitCard.setWaiter(user);
@@ -55,12 +53,12 @@ public class WaitCardServiceImpl implements WaitCardService {
         User nextUser = waitCardRepo.findFirstByTicketTypeIdOrderByCreatedAtAsc(ticketTypeId).map(
                 WaitCard::getWaiter
         ).orElse(null);
+
         if (nextUser != null) {
             waitCardRepo.deleteByTicketTypeIdAndWaiterId(ticketTypeId, nextUser.getId());
             Ticket ticket= ticketTypeService.purchaseTicket( nextUser.getId(),ticketTypeId);
         }
         return nextUser != null ? nextUser.getId() : null;
-
     }
 
 }

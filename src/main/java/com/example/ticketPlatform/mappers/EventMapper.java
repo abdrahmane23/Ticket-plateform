@@ -13,8 +13,11 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring",unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface EventMapper {
     CreateTicketTypeRequest fromDto(CreateTicketTypeRequestDto dto);
+    TicketType toTicketTypeEntity(CreateTicketTypeRequest request);
 
     CreateEventRequest fromDto(CreateEventRequestDto dto);
+
+    Event toEventEntity(CreateEventRequest request);
 
     CreateEventResponseDto toDto(Event event);
 

@@ -4,7 +4,8 @@ package com.example.ticketPlatform.services.impl;
 import com.example.ticketPlatform.Repositories.TicketRepo;
 import com.example.ticketPlatform.Repositories.TicketTypeRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
-import com.example.ticketPlatform.Repositories.WaitCardRepo;
+import com.example.ticketPlatform.Validators.TicketValidator;
+import com.example.ticketPlatform.Validators.UserValidator;
 import com.example.ticketPlatform.domain.entities.Ticket;
 import com.example.ticketPlatform.domain.entities.TicketStatusEnum;
 import com.example.ticketPlatform.domain.entities.TicketType;
@@ -29,6 +30,8 @@ public class TicketServiceImpl implements TicketService {
   private final WaitCardService waitCardService;
   private final TicketTypeRepo ticketTypeRepository;
   private final NotificationDispatcher notificationDispatcher;
+  private final UserValidator userValidator;
+  private final TicketValidator ticketValidator;
 
   @Override
   public Page<Ticket> listTicketsForUser(UUID userId, Pageable pageable) {
@@ -42,33 +45,23 @@ public class TicketServiceImpl implements TicketService {
 
   @Override
   public void cancelTicket(UUID userId, UUID ticketId) {
-    Ticket ticket = getTicketIfOwnedByUser(userId, ticketId);
-    System.out.println(userId);
-    User user = userRepository.findById(userId)
-            .orElseThrow(
-                    () -> new RuntimeException("User not found")
-            );
+
+    Ticket ticket = ticketValidator.getTicketIfOwnedByUser(userId, ticketId);
+    User user = userValidator.getUserIfExists(userId,"USER");
+
     ticket.setStatus(TicketStatusEnum.CANCELLED);
     TicketType ticketType = ticket.getTicketType();
-    ticketType.setTotalAvailable(ticketType.getTotalAvailable() + 1);
+    ticketType.setTotalAvailable(ticketType.getTotalAvailable() + 1); //HANDLE CONCURRENCY!!!!
     ticketRepository.save(ticket);
     ticketTypeRepository.save(ticketType);
+
     UUID nextUserId= waitCardService.assignTicketToNextUser(ticketType.getId());
-    notificationDispatcher.dispatch(nextUserId, "Good news! A ticket for " + ticketType.getName() + " is now purchased for you.");
 
-
-
-
-
-  }
-
-  private Ticket getTicketIfOwnedByUser(UUID userId, UUID ticketId) {
-    Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(
-            () -> new RuntimeException("Ticket not found")
-    );
-    if (!ticket.getPurchaser().getId().equals(userId)) {
-      throw new RuntimeException("Ticket does not belong to user");
+    if (nextUserId != null) {
+      notificationDispatcher.dispatch(nextUserId, "Good news! A ticket for " + ticketType.getName() + " is now purchased for you.");
     }
-    return ticket;
+
   }
+
+
 }
