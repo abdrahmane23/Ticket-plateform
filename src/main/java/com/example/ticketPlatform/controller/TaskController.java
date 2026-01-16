@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +21,9 @@ import java.util.UUID;
 import static com.example.ticketPlatform.util.JwtUtil.parseUserId;
 
 @RestController
-@RequestMapping(path = "{eventId}/{ticketTypeId}/staffings")
+@RequestMapping(path = "ticket-types/{ticketTypeId}/Tasks")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('ORGANIZER_ROLE')")
 public class TaskController {
     private final TaskService taskService;
     private final TaskMapper taskMapper;
@@ -40,7 +42,7 @@ public class TaskController {
         taskService.removeTaskFromEvent( parseUserId(jwt),taskId );
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-    @GetMapping("tasksForOrganizer")
+    @GetMapping()
     public ResponseEntity<Page<TaskForOrganizerResponseDto>> BrowseTasksForOrganizer(
             @PathVariable UUID ticketTypeId,
             @AuthenticationPrincipal Jwt jwt,
@@ -51,9 +53,9 @@ public class TaskController {
                 tasks.map(taskMapper::toTaskForOrganizerResponseDto)
         );
     }
-    @GetMapping("taskForStaffer")
+    @GetMapping("{stafferId}")
     public ResponseEntity<TaskForStafferResponseDto> BrowseTaskForStaffer(
-            @RequestParam UUID StafferId,
+            @PathVariable UUID StafferId,
             @AuthenticationPrincipal Jwt jwt
     ){
         Task task = taskService.browseTaskForStaffer(StafferId, parseUserId(jwt));

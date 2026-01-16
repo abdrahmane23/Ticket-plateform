@@ -9,11 +9,13 @@ import com.example.ticketPlatform.domain.entities.User;
 import com.example.ticketPlatform.mappers.RequestMapper;
 import com.example.ticketPlatform.mappers.UserMapper;
 import com.example.ticketPlatform.services.RequestingService;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,7 +29,8 @@ import static com.example.ticketPlatform.util.JwtUtil.JwtRoleExtractor.extractRo
 import static com.example.ticketPlatform.util.JwtUtil.parseUserId;
 
 @RestController
-@RequestMapping(path = "/requesting")
+@RequestMapping(path = "/requests")
+@PreAuthorize("hasAnyAuthority('ORGANIZER_ROLE','STAFF_ROLE')")
 @RequiredArgsConstructor
 public class RequestController {
     private final RequestingService requestingService;
@@ -35,9 +38,9 @@ public class RequestController {
     private final RequestMapper requestMapper;
 
 
-    @PostMapping("/{receiverId}")
-    public ResponseEntity<Void> SendRequest(@PathVariable UUID  receiverId,
-                                               @AuthenticationPrincipal Jwt jwt ){
+    @PostMapping("")
+    public ResponseEntity<Void> SendRequest(@AuthenticationPrincipal Jwt jwt,
+                                            @RequestBody @NotNull UUID receiverId){
 
         String senderRole = extractRoleEndingWithRole(jwt.getTokenValue());
         requestingService.sendrequest( parseUserId(jwt),receiverId, senderRole);
@@ -73,19 +76,19 @@ public class RequestController {
         return ResponseEntity.ok(
                 staffers.map(userMapper::toBrowseStafferResponseDto));
     }
-    @GetMapping("/{organizerId}")
+    @GetMapping("organizers/{organizerId}")
     public ResponseEntity<BrowseOrganizerResponseDto> browseOrganizer(UUID organizerId) {
         User organizer = requestingService.browseOrganizer(organizerId);
         BrowseOrganizerResponseDto organizerResponseDto = userMapper.toBrowseOrganizerResponseDto(organizer);
         return ResponseEntity.ok(organizerResponseDto);
     }
-    @GetMapping("/{stafferId}")
+    @GetMapping("staffers/{stafferId}")
     public ResponseEntity<BrowseStafferResponseDto> browseStaffer(UUID stafferId) {
         User organizer = requestingService.browseStaffer(stafferId);
         BrowseStafferResponseDto stafferResponseDto = userMapper.toBrowseStafferResponseDto(organizer);
         return ResponseEntity.ok(stafferResponseDto);
     }
-    @GetMapping("/requests")
+    @GetMapping()
     public ResponseEntity<Page<BrowseRequestResponseDto>> browseRequests(
             @AuthenticationPrincipal Jwt jwt,
             Pageable pageable

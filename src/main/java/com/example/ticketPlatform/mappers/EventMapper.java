@@ -7,17 +7,18 @@ import com.example.ticketPlatform.domain.UpdateEventRequest;
 import com.example.ticketPlatform.domain.UpdateTicketTypeRequest;
 import com.example.ticketPlatform.domain.entities.Event;
 import com.example.ticketPlatform.domain.entities.TicketType;
+import com.example.ticketPlatform.domain.entities.User;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring",unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface EventMapper {
     CreateTicketTypeRequest fromDto(CreateTicketTypeRequestDto dto);
-    TicketType toTicketTypeEntity(CreateTicketTypeRequest request);
 
     CreateEventRequest fromDto(CreateEventRequestDto dto);
-
-    Event toEventEntity(CreateEventRequest request);
 
     CreateEventResponseDto toDto(Event event);
 

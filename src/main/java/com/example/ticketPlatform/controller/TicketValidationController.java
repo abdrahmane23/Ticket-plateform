@@ -9,12 +9,14 @@ import com.example.ticketPlatform.mappers.TicketValidationMapper;
 import com.example.ticketPlatform.services.TicketValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping(path = "{EventId}/{TicketTypeId}/ticket-validations")
+@PreAuthorize("hasAuthority('STAFF_ROLE')")
 @RequiredArgsConstructor
 public class TicketValidationController {
 

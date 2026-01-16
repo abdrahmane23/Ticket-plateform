@@ -33,7 +33,7 @@ public class JwtAuthenticationConverter implements Converter<Jwt, JwtAuthenticat
     List<String> roles = (List<String>)realmAccess.get("roles");
 
     return roles.stream()
-        .filter(role -> role.startsWith("ROLE_"))
+        .filter(role -> role.endsWith("_ROLE"))
         .map(SimpleGrantedAuthority::new)
         .collect(Collectors.toList());
   }

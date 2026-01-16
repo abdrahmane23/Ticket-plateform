@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 @Service
 @RequiredArgsConstructor
@@ -30,10 +31,11 @@ public class WaitCardServiceImpl implements WaitCardService {
     private final TicketValidator ticketValidator;
 
     @Override
-    public void createWaitCard(UUID ticketTypeId, UUID userId) {
+    public void createWaitCard(UUID ticketTypeId, UUID userId,LocalDateTime timeOfRequest) {
         TicketType ticketType = ticketTypeValidator.getTicketTypeIfExist(ticketTypeId);
         User user = userValidator.getUserIfExists(userId,"USER");
 
+        ticketTypeValidator.checkTimeOfSalesValidity(ticketType,timeOfRequest);
         ticketTypeValidator.checkTicketTypeAvailability(ticketType);
         ticketValidator.checkDuplicateTicket(userId, ticketTypeId);
 
@@ -49,14 +51,14 @@ public class WaitCardServiceImpl implements WaitCardService {
 
     @Override
     @Transactional
-    public UUID assignTicketToNextUser(UUID ticketTypeId) {
+    public UUID assignTicketToNextUser(UUID ticketTypeId, LocalDateTime timeOfPurchase) {
         User nextUser = waitCardRepo.findFirstByTicketTypeIdOrderByCreatedAtAsc(ticketTypeId).map(
                 WaitCard::getWaiter
         ).orElse(null);
 
         if (nextUser != null) {
             waitCardRepo.deleteByTicketTypeIdAndWaiterId(ticketTypeId, nextUser.getId());
-            Ticket ticket= ticketTypeService.purchaseTicket( nextUser.getId(),ticketTypeId);
+            Ticket ticket= ticketTypeService.purchaseTicket( nextUser.getId(),ticketTypeId,timeOfPurchase);
         }
         return nextUser != null ? nextUser.getId() : null;
     }

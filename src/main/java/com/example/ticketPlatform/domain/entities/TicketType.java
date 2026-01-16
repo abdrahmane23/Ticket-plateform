@@ -47,10 +47,10 @@ public class TicketType {
   @JoinColumn(name = "event_id")
   private Event event;
 
-  @OneToMany(mappedBy = "ticketType", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "ticketType", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Ticket> tickets = new ArrayList<>();
 
-  @OneToMany(mappedBy = "ticketType", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "ticketType", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Task> tasks = new ArrayList<>();
 
   @OneToMany(mappedBy = "ticketType", cascade = CascadeType.ALL)

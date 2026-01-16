@@ -20,6 +20,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -36,10 +37,11 @@ public class TicketTypeServiceImpl implements TicketTypeService {
 
   @Override
   @Transactional
-  public Ticket purchaseTicket(UUID userId, UUID ticketTypeId) {
+  public Ticket purchaseTicket(UUID userId, UUID ticketTypeId, LocalDateTime timeOfPurchase) {
     User user = userValidator.getUserIfExists(userId,"USER");
 
     TicketType ticketType = ticketTypeValidator.getTicketTypeWithLock(ticketTypeId);
+    ticketTypeValidator.checkTimeOfSalesValidity(ticketType, timeOfPurchase);
 
     ticketValidator.checkDuplicateTicket(userId, ticketTypeId);
 

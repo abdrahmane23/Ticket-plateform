@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,14 +29,16 @@ public class StaffLinkController {
     private final StafflinkService stafflinkService;
     private final UserMapper userMapper;
 
-    @PostMapping("/staffing/{stafflinkId}")
-    public ResponseEntity<Void> RemoveLink(@PathVariable UUID stafflinkId,
+    @PreAuthorize("hasAnyAuthority('ORGANIZER_ROLE','STAFF_ROLE')")
+    @PostMapping("/staffLinks/{staffLinkId}")
+    public ResponseEntity<Void> RemoveLink(@PathVariable UUID staffLinkId,
                                            @AuthenticationPrincipal Jwt jwt ){
         String RemoverRole = extractRoleEndingWithRole(jwt.getTokenValue());
-        stafflinkService.removeLink(stafflinkId, parseUserId(jwt), RemoverRole);
+        stafflinkService.removeLink(staffLinkId, parseUserId(jwt), RemoverRole);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-    @GetMapping("/Staff")
+    @PreAuthorize("hasAuthority('ORGANIZER_ROLE')")
+    @GetMapping("/StaffLinks")
     public ResponseEntity<Page<GetActiveStafferResponseDto>> browseStaffers(
             @AuthenticationPrincipal Jwt jwt,
             Pageable pageable
@@ -45,7 +48,8 @@ public class StaffLinkController {
                 staffers.map(userMapper::toGetActiveStafferResponseDto)
         );
     }
-    @GetMapping("Staff/{StafferId}")
+    @PreAuthorize("hasAuthority('ORGANIZER_ROLE')")
+    @GetMapping("StaffLinks/{StafferId}")
     public ResponseEntity<GetActiveStafferResponseDto> browseStaffer(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID StafferId
@@ -55,7 +59,8 @@ public class StaffLinkController {
                 userMapper.toGetActiveStafferResponseDto(staffer)
         );
     }
-    @GetMapping("/organizer")
+    @PreAuthorize("hasAuthority('STAFF_ROLE')")
+    @GetMapping("StaffLinks/organizer")
     public ResponseEntity<GetActiveOrganizerResponseDto> browseOrganizer(
             @AuthenticationPrincipal Jwt jwt
             ){

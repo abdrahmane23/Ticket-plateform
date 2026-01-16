@@ -43,10 +43,10 @@ public class Ticket {
   @JoinColumn(name = "purchaser_id")
   private User purchaser;
 
-  @OneToOne(mappedBy = "ticket", cascade = CascadeType.ALL)
+  @OneToOne(mappedBy = "ticket", cascade = CascadeType.ALL,orphanRemoval = true)
   private TicketValidation validations;
 
-  @OneToOne(mappedBy = "ticket", cascade = CascadeType.ALL)
+  @OneToOne(mappedBy = "ticket", cascade = CascadeType.ALL,orphanRemoval = true)
   private QrCode qrCodes ;
 
   @CreatedDate

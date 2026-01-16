@@ -33,9 +33,9 @@ public class CreateEventRequestDto {
   @NotBlank(message = "city information is required")
   private String city;
 
-
+  @NotNull(message = "sales start date is required")
   private LocalDateTime salesStart;
-
+  @NotNull(message = "sales end date is required")
   private LocalDateTime salesEnd;
 
   @NotNull(message = "Event status must be provided")

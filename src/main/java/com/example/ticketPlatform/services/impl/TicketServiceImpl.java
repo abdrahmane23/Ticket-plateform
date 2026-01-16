@@ -4,6 +4,7 @@ package com.example.ticketPlatform.services.impl;
 import com.example.ticketPlatform.Repositories.TicketRepo;
 import com.example.ticketPlatform.Repositories.TicketTypeRepo;
 import com.example.ticketPlatform.Repositories.UserRepo;
+import com.example.ticketPlatform.Validators.TicketTypeValidator;
 import com.example.ticketPlatform.Validators.TicketValidator;
 import com.example.ticketPlatform.Validators.UserValidator;
 import com.example.ticketPlatform.domain.entities.Ticket;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,6 +34,7 @@ public class TicketServiceImpl implements TicketService {
   private final NotificationDispatcher notificationDispatcher;
   private final UserValidator userValidator;
   private final TicketValidator ticketValidator;
+  private final TicketTypeValidator ticketTypeValidator;
 
   @Override
   public Page<Ticket> listTicketsForUser(UUID userId, Pageable pageable) {
@@ -44,18 +47,20 @@ public class TicketServiceImpl implements TicketService {
   }
 
   @Override
-  public void cancelTicket(UUID userId, UUID ticketId) {
+  public void cancelTicket(UUID userId, UUID ticketId, LocalDateTime timeOfCancellation) {
 
     Ticket ticket = ticketValidator.getTicketIfOwnedByUser(userId, ticketId);
     User user = userValidator.getUserIfExists(userId,"USER");
+    TicketType ticketType = ticket.getTicketType();
+    ticketTypeValidator.checkTimeOfSalesValidity(ticketType, timeOfCancellation);
+
 
     ticket.setStatus(TicketStatusEnum.CANCELLED);
-    TicketType ticketType = ticket.getTicketType();
     ticketType.setTotalAvailable(ticketType.getTotalAvailable() + 1); //HANDLE CONCURRENCY!!!!
     ticketRepository.save(ticket);
     ticketTypeRepository.save(ticketType);
 
-    UUID nextUserId= waitCardService.assignTicketToNextUser(ticketType.getId());
+    UUID nextUserId= waitCardService.assignTicketToNextUser(ticketType.getId(),  timeOfCancellation);
 
     if (nextUserId != null) {
       notificationDispatcher.dispatch(nextUserId, "Good news! A ticket for " + ticketType.getName() + " is now purchased for you.");

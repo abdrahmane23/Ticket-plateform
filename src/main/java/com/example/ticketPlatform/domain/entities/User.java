@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.eclipse.microprofile.openapi.OASConfig;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -44,21 +45,21 @@ public class User {
   @OneToMany(mappedBy = "organizer", cascade = CascadeType.ALL)
   private List<Event> organizedEvents = new ArrayList<>();
 
-  @OneToMany(mappedBy = "sender")
+  @OneToMany(mappedBy = "sender",orphanRemoval = true)
   private List<Request> sentRequests= new ArrayList<>();
 
-  @OneToMany(mappedBy = "receiver")
+  @OneToMany(mappedBy = "receiver",orphanRemoval = true)
   private List<Request> receivedRequests= new ArrayList<>();
 
-  @OneToOne(mappedBy = "staffer", cascade = CascadeType.ALL)
+  @OneToOne(mappedBy = "staffer", cascade = CascadeType.ALL,orphanRemoval = true)
   private StaffLink staffLink;
   @OneToMany(mappedBy = "staffer", cascade = CascadeType.ALL)
   private List<Task> tasks= new ArrayList<>();
 
-  @OneToMany(mappedBy = "organizer", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "organizer", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<StaffLink> StaffMembers = new ArrayList<>();
 
-  @OneToMany(mappedBy = "waiter", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "waiter", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<WaitCard> waitCards = new ArrayList<>();
 
   @CreatedDate

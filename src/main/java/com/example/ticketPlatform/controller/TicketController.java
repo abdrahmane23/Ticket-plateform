@@ -12,16 +12,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static com.example.ticketPlatform.util.JwtUtil.parseUserId;
 
 @RestController
 @RequestMapping(path = "/tickets")
+@PreAuthorize("hasAuthority('USER_ROLE')")
 @RequiredArgsConstructor
 public class TicketController {
 
@@ -73,12 +76,14 @@ public class TicketController {
   @PostMapping("/{ticketId}/cancel")
   public ResponseEntity<Void> cancelTicket(
           @AuthenticationPrincipal Jwt jwt,
-          @PathVariable UUID ticketId
-  ) {
+          @PathVariable UUID ticketId,
+          @RequestParam LocalDateTime timeOfCancellation
+          ) {
     UUID userId = parseUserId(jwt);
     ticketService.cancelTicket(
             userId,
-            ticketId
+            ticketId,
+            timeOfCancellation
     );
     return ResponseEntity.noContent().build();
   }

@@ -18,6 +18,14 @@ import java.util.List;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+  @ExceptionHandler(InvalidTimeOfSalesException.class)
+  public ResponseEntity<ErrorDto> InvalidTimeOfSalesException (InvalidTimeOfSalesException ex) {
+    log.error("Caught InvalidTimeOfSales Exception   ", ex);
+    ErrorDto errorDto = new ErrorDto();
+    errorDto.setError("unable to buy , cancel or enter waitlist  ticket because the sales window is not available at this time");
+    return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+  }
+
   @ExceptionHandler(TicketOwnershipException.class)
   public ResponseEntity<ErrorDto> TicketOwnershipException (TicketOwnershipException ex) {
     log.error("Caught TicketOwnership Exception  ", ex);

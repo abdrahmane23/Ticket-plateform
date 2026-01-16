@@ -8,6 +8,7 @@ import com.example.ticketPlatform.exceptions.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 @Component
 @RequiredArgsConstructor
@@ -57,6 +58,12 @@ public class TicketTypeValidator {
     public void checkTicketTypeAvailability(TicketType ticketType) {
         if (ticketType.getTotalAvailable()>0){
             throw new TicketAvailableException("Tickets are available, no need to create wait card");
+        }
+    }
+    public void checkTimeOfSalesValidity(TicketType ticketType, LocalDateTime timeOfPurchase) {
+        if (ticketType.getEvent().getSalesEnd().isBefore(timeOfPurchase) ||
+                ticketType.getEvent().getSalesStart().isAfter(timeOfPurchase)) {
+            throw new InvalidTimeOfSalesException("Sales end time cannot be before sales start time");
         }
     }
 }
