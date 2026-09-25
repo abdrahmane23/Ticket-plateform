@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -32,7 +33,7 @@ public class EventController {
     @PostMapping
     public ResponseEntity<CreateEventResponseDto>createEvent(
             @AuthenticationPrincipal Jwt jwt
-            , @Valid @RequestBody CreateEventRequestDto createEventRequestDto
+            , @Validated @RequestBody CreateEventRequestDto createEventRequestDto
     ){
         CreateEventRequest createEventRequest = eventMapper.fromDto(createEventRequestDto);
         UUID organizerId = parseUserId(jwt);

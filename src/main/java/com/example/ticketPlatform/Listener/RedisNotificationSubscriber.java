@@ -11,8 +11,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RedisNotificationSubscriber {
 
-    private final NotificationService notificationService; // Your EXISTING service
-    private final ObjectMapper objectMapper; // For converting JSON back to objects
+    private final NotificationService notificationService;
+    private final ObjectMapper objectMapper;
 
 
     public void handleMessage(String message) {

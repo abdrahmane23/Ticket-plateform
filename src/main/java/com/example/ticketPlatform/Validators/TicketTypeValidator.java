@@ -23,7 +23,7 @@ public class TicketTypeValidator {
         User organizer=  userValidator.getUserIfExists(organizerId,"ORGANIZER");
 
         if (!AssignedTicketType.getEvent().getOrganizer().equals(organizer)) {
-            throw new EventOwnershipException(STR."Organizer with ID \{organizerId} is not the organizer of event with ID \{AssignedTicketType.getEvent().getOrganizer().getId()}");
+            throw new EventOwnershipException("Organizer with ID "+organizerId+" is not the organizer of event with ID "+AssignedTicketType.getEvent().getOrganizer().getId());
         }
         return AssignedTicketType;
     }
@@ -37,7 +37,7 @@ public class TicketTypeValidator {
         TicketType AssignedTicketType = getTicketTypeIfExist(ticketTypeId);
         User organizer=  userValidator.getUserIfExists(organizerId,"ORGANIZER");
         if (!AssignedTicketType.getEvent().getOrganizer().equals(organizer)) {
-            throw new EventOwnershipException(STR."Organizer with ID \{organizerId} is not the organizer of event with ID \{AssignedTicketType.getEvent().getOrganizer().getId()}");
+            throw new EventOwnershipException("Organizer with ID "+organizerId+" is not the organizer of event with ID "+AssignedTicketType.getEvent().getOrganizer().getId());
         }
     }
 
